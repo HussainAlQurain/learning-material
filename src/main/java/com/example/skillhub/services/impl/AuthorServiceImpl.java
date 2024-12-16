@@ -1,7 +1,6 @@
 package com.example.skillhub.services.impl;
 
 import com.example.skillhub.domain.Author;
-import com.example.skillhub.enums.Rating;
 import com.example.skillhub.exceptions.ResourceNotFoundException;
 import com.example.skillhub.repositories.AuthorRepository;
 import com.example.skillhub.services.AuthorService;
@@ -61,5 +60,10 @@ public class AuthorServiceImpl implements AuthorService {
         Author author = authorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found with id " + id));
         authorRepository.delete(author);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return authorRepository.existsByEmail(email);
     }
 }
