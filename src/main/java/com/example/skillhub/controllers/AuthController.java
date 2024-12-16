@@ -1,7 +1,9 @@
 package com.example.skillhub.controllers;
 
 import com.example.skillhub.domain.Author;
+import com.example.skillhub.domain.CurrentUser;
 import com.example.skillhub.domain.dto.AuthResponse;
+import com.example.skillhub.domain.dto.AuthorProfileResponse;
 import com.example.skillhub.domain.dto.LoginRequest;
 import com.example.skillhub.domain.dto.RegisterRequest;
 import com.example.skillhub.services.AuthorService;
@@ -17,10 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -88,6 +87,50 @@ public class AuthController {
         // Invalidate session if needed
         request.getSession().invalidate();
         return ResponseEntity.ok(new AuthResponse("Logout successful"));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<AuthorProfileResponse> getCurrentAuthor(@CurrentUser Author author) {
+        if (author == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        AuthorProfileResponse profile = new AuthorProfileResponse(
+                author.getId(),
+                author.getName(),
+                author.getEmail(),
+                author.getPhone(),
+                author.getRole(),
+                author.getStatus(),
+                author.getRating(),
+                author.getCreatedAt()
+        );
+        return ResponseEntity.ok(profile);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<AuthorProfileResponse> updateCurrentAuthor(@Valid @RequestBody Author updateDetails,
+                                                                     @CurrentUser Author author) {
+        if (author == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        authorService.partialUpdate(author.getId(), updateDetails);
+
+        // Fetch updated author
+        Author updatedAuthor = authorService.getAuthorById(author.getId())
+                .orElseThrow(() -> new com.example.skillhub.exceptions.ResourceNotFoundException("Author not found after update"));
+
+        AuthorProfileResponse profile = new AuthorProfileResponse(
+                updatedAuthor.getId(),
+                updatedAuthor.getName(),
+                updatedAuthor.getEmail(),
+                updatedAuthor.getPhone(),
+                updatedAuthor.getRole(),
+                updatedAuthor.getStatus(),
+                updatedAuthor.getRating(),
+                updatedAuthor.getCreatedAt()
+        );
+        return ResponseEntity.ok(profile);
     }
 
 }
