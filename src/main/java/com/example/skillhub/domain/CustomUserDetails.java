@@ -57,4 +57,7 @@ public class CustomUserDetails implements UserDetails {
         return author.getName();
     }
 
+    public Object getAuthor() {
+        return author;
+    }
 }
