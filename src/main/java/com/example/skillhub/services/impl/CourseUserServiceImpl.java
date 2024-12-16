@@ -58,4 +58,9 @@ public class CourseUserServiceImpl implements CourseUserService {
                 .orElseThrow(() -> new ResourceNotFoundException("CourseUser not found with id " + id));
         courseUserRepository.delete(courseUser);
     }
+
+    @Override
+    public List<CourseUser> findByCourseId(Long courseId) {
+        return courseUserRepository.findByCourseId(courseId);
+    }
 }

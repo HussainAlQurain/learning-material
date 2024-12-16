@@ -6,6 +6,6 @@ public enum UserRoleInCourse {
     INSTRUCTOR,
     TEACHING_ASSISTANT,
     AUTHOR,
-    COAUTHOR,
+    COLLABORATOR,
     ADMIN;
 }

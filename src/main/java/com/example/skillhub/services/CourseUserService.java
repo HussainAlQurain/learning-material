@@ -11,4 +11,6 @@ public interface CourseUserService {
     Optional<CourseUser> getCourseUserById(Long id);
     List<CourseUser> getAllCourseUsers();
     void deleteCourseUser(Long id);
+
+    List<CourseUser> findByCourseId(Long courseId);
 }

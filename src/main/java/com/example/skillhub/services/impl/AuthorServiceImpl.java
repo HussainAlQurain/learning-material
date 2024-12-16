@@ -66,4 +66,9 @@ public class AuthorServiceImpl implements AuthorService {
     public boolean existsByEmail(String email) {
         return authorRepository.existsByEmail(email);
     }
+
+    @Override
+    public Optional<Author> findByEmail(String email) {
+        return authorRepository.findByEmail(email);
+    }
 }

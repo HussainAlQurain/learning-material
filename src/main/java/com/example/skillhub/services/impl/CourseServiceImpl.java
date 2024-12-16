@@ -1,8 +1,11 @@
 package com.example.skillhub.services.impl;
 
+import com.example.skillhub.domain.Author;
 import com.example.skillhub.domain.Course;
+import com.example.skillhub.enums.UserRoleInCourse;
 import com.example.skillhub.exceptions.ResourceNotFoundException;
 import com.example.skillhub.repositories.CourseRepository;
+import com.example.skillhub.repositories.CourseUserRepository;
 import com.example.skillhub.services.CourseService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +20,13 @@ import java.util.Optional;
 public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
+    private final CourseUserRepository courseUserRepository;
 
     @Autowired
-    public CourseServiceImpl(CourseRepository courseRepository) {
+    public CourseServiceImpl(CourseRepository courseRepository,
+                             CourseUserRepository courseUserRepository) {
         this.courseRepository = courseRepository;
+        this.courseUserRepository = courseUserRepository;
     }
 
     @Override
@@ -67,6 +73,26 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with id " + id));
         courseRepository.delete(course);
+    }
+
+    @Override
+    public boolean isUserAuthorized(Long courseId, Author author) {
+        // Check if the user is the owner
+        Optional<Course> courseOpt = courseRepository.findById(courseId);
+        if (courseOpt.isEmpty()) {
+            return false;
+        }
+        Course course = courseOpt.get();
+        if (course.getUser().getId().equals(author.getId())) {
+            return true;
+        }
+
+        // Check if the user is a collaborator
+        return courseUserRepository.existsByCourseIdAndUserIdAndRole(
+                courseId,
+                author.getId(),
+                UserRoleInCourse.COLLABORATOR
+        );
     }
 
 }

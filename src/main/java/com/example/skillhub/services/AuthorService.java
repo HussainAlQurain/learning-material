@@ -14,5 +14,6 @@ public interface AuthorService {
     List<Author> getAllAuthors();
     void deleteAuthor(Long id);
 
+    Optional<Author> findByEmail(String email);
     boolean existsByEmail(@Email(message = "Email should be valid") @NotBlank(message = "Email is mandatory") String email);
 }

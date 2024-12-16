@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -18,6 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -32,7 +35,7 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
 
-    @Value("${cors.allowed.origins:http://localhost}")
+    @Value("${cors.allowed.origins}") // Inject the value from application.properties
     private String corsAllowedOrigins;
 
     @Bean
@@ -53,7 +56,7 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/api/auth/logout")
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/api/auth/logout", "POST"))
                         .logoutSuccessHandler(logoutSuccessHandler())
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
@@ -75,10 +78,16 @@ public class SecurityConfig {
         return provider;
     }
 
+    // Define AuthenticationManager bean
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
     // Password encoder bean
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12);
+        return new BCryptPasswordEncoder(14);
     }
 
     // CORS configuration
@@ -99,7 +108,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
         return (request, response, authentication) -> {
-            // You can customize the response on successful authentication
+            // Customize response on successful authentication
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().write("Login successful");
         };
@@ -109,7 +118,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationFailureHandler authenticationFailureHandler() {
         return (request, response, exception) -> {
-            // You can customize the response on authentication failure
+            // Customize response on authentication failure
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Login failed: " + exception.getMessage());
         };
@@ -123,6 +132,5 @@ public class SecurityConfig {
             response.getWriter().write("Logout successful");
         };
     }
-
 
 }

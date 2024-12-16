@@ -1,5 +1,6 @@
 package com.example.skillhub.services;
 
+import com.example.skillhub.domain.Author;
 import com.example.skillhub.domain.Course;
 
 import java.util.List;
@@ -11,4 +12,6 @@ public interface CourseService {
     Optional<Course> getCourseById(Long id);
     List<Course> getAllCourses();
     void deleteCourse(Long id);
+    // Authorization method
+    boolean isUserAuthorized(Long courseId, Author author);
 }
