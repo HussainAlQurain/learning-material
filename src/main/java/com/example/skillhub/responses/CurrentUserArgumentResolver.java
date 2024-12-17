@@ -4,7 +4,6 @@ import com.example.skillhub.domain.Author;
 import com.example.skillhub.domain.CurrentUser;
 import com.example.skillhub.domain.CustomUserDetails;
 import org.springframework.core.MethodParameter;
-import org.springframework.messaging.Message;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;

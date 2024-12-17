@@ -1,6 +1,7 @@
 package com.example.skillhub.domain;
 
 import com.example.skillhub.enums.Rating;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -32,4 +34,8 @@ public class Lesson {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+
+    @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Section> sections;
 }
