@@ -9,12 +9,16 @@ import com.example.skillhub.exceptions.ResourceNotFoundException;
 import com.example.skillhub.services.AuthorService;
 import com.example.skillhub.services.CourseService;
 import com.example.skillhub.services.CourseUserService;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.*;
+import io.swagger.v3.oas.annotations.media.*;
 
 import java.util.List;
 
@@ -34,9 +38,22 @@ public class CourseUserController {
         this.authorService = authorService;
     }
 
+    @Operation(summary = "Add a collaborator to a course", description = "Adds a collaborator with a specific role to the specified course.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Collaborator added successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CourseUser.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User not authorized to add collaborators",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "Course or collaborator not found",
+                    content = @Content),
+            @ApiResponse(responseCode = "400", description = "Invalid input data",
+                    content = @Content)
+    })
     @PostMapping
-    public ResponseEntity<CourseUser> addCollaborator(@Valid @RequestBody CourseUserDTO courseUserDTO,
-                                                      Authentication authentication) {
+    public ResponseEntity<CourseUser> addCollaborator(
+            @Valid @RequestBody @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "CourseUser details to add a collaborator", required = true) CourseUserDTO courseUserDTO,
+            Authentication authentication) {
         String email = authentication.getName();
         Author author = authorService.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
@@ -64,9 +81,19 @@ public class CourseUserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCourseUser);
     }
 
+    @Operation(summary = "Remove a collaborator from a course", description = "Removes a collaborator from the specified course by their CourseUser ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Collaborator removed successfully",
+                    content = @Content),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User not authorized to remove collaborators",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "CourseUser not found",
+                    content = @Content)
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> removeCollaborator(@PathVariable Long id,
-                                                   Authentication authentication) {
+    public ResponseEntity<Void> removeCollaborator(
+            @Parameter(description = "ID of the CourseUser to remove", required = true) @PathVariable Long id,
+            Authentication authentication) {
         String email = authentication.getName();
         Author author = authorService.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
@@ -83,9 +110,20 @@ public class CourseUserController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Get all collaborators for a course", description = "Retrieves a list of all collaborators associated with the specified course.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Collaborators retrieved successfully",
+                    content = @Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = CourseUser.class)))),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User not authorized to view collaborators",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "Course not found",
+                    content = @Content)
+    })
     @GetMapping("/course/{courseId}")
-    public ResponseEntity<List<CourseUser>> getCollaborators(@PathVariable Long courseId,
-                                                             Authentication authentication) {
+    public ResponseEntity<List<CourseUser>> getCollaborators(
+            @Parameter(description = "ID of the course to retrieve collaborators for", required = true) @PathVariable Long courseId,
+            Authentication authentication) {
         String email = authentication.getName();
         Author author = authorService.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found"));

@@ -9,12 +9,18 @@ import com.example.skillhub.services.AuthorService;
 import com.example.skillhub.services.CourseService;
 import com.example.skillhub.services.LessonService;
 import com.example.skillhub.services.SectionService;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.*;
+import io.swagger.v3.oas.annotations.media.*;
+import io.swagger.v3.oas.annotations.parameters.*;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -38,9 +44,22 @@ public class SectionController {
         this.authorService = authorService;
     }
 
+    @Operation(summary = "Create a new section", description = "Creates a new section associated with a specific lesson.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Section created successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Section.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User not authorized to add sections to this lesson",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "Lesson not found",
+                    content = @Content),
+            @ApiResponse(responseCode = "400", description = "Invalid input data",
+                    content = @Content)
+    })
     @PostMapping
-    public ResponseEntity<Section> createSection(@Valid @RequestBody SectionDTO sectionDTO,
-                                                 Authentication authentication) {
+    public ResponseEntity<Section> createSection(
+            @Valid @RequestBody @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Section details to create", required = true) SectionDTO sectionDTO,
+            Authentication authentication) {
         String email = authentication.getName();
         Author author = authorService.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
@@ -67,23 +86,53 @@ public class SectionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdSection);
     }
 
+    @Operation(summary = "Retrieve a section by ID", description = "Fetches a single section by its ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Section retrieved successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Section.class))),
+            @ApiResponse(responseCode = "404", description = "Section not found",
+                    content = @Content)
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<Section> getSectionById(@PathVariable Long id) {
+    public ResponseEntity<Section> getSectionById(
+            @Parameter(description = "ID of the section to retrieve", required = true) @PathVariable Long id) {
         Section section = sectionService.getSectionById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Section not found with id " + id));
         return ResponseEntity.ok(section);
     }
 
+    @Operation(summary = "Retrieve all sections", description = "Fetches a list of all available sections.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Sections retrieved successfully",
+                    content = @Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = Section.class)))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content)
+    })
     @GetMapping
     public ResponseEntity<List<Section>> getAllSections() {
         List<Section> sections = sectionService.getAllSections();
         return ResponseEntity.ok(sections);
     }
 
+    @Operation(summary = "Update a section partially", description = "Updates specific fields of an existing section.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Section updated successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Section.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User not authorized to update this section",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "Section or Course not found",
+                    content = @Content),
+            @ApiResponse(responseCode = "400", description = "Invalid input data",
+                    content = @Content)
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<Section> updateSection(@PathVariable Long id,
-                                                 @Valid @RequestBody SectionDTO sectionDTO,
-                                                 Authentication authentication) {
+    public ResponseEntity<Section> updateSection(
+            @Parameter(description = "ID of the section to update", required = true) @PathVariable Long id,
+            @Valid @RequestBody @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Section details to update", required = true) SectionDTO sectionDTO,
+            Authentication authentication) {
         String email = authentication.getName();
         Author author = authorService.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
@@ -110,9 +159,19 @@ public class SectionController {
         return ResponseEntity.ok(updatedSection);
     }
 
+    @Operation(summary = "Delete a section", description = "Deletes an existing section by its ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Section deleted successfully",
+                    content = @Content),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User not authorized to delete this section",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "Section not found",
+                    content = @Content)
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSection(@PathVariable Long id,
-                                              Authentication authentication) {
+    public ResponseEntity<Void> deleteSection(
+            @Parameter(description = "ID of the section to delete", required = true) @PathVariable Long id,
+            Authentication authentication) {
         String email = authentication.getName();
         Author author = authorService.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
