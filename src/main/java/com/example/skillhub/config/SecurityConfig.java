@@ -93,12 +93,22 @@ public class SecurityConfig {
     // CORS configuration
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        // Parse the allowed origins from the property
+//        configuration.setAllowedOrigins(Arrays.asList(corsAllowedOrigins.split(",")));
+//        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control", "X-Requested-With", "Origin", "Accept"));
+//        configuration.setAllowCredentials(true); // Allow credentials like cookies or Authorization headers
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return source;
+        // test to allow all cors
         CorsConfiguration configuration = new CorsConfiguration();
-        // Parse the allowed origins from the property
-        configuration.setAllowedOrigins(Arrays.asList(corsAllowedOrigins.split(",")));
+        // Allow all origins
+        configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control", "X-Requested-With", "Origin", "Accept"));
-        configuration.setAllowCredentials(true); // Allow credentials like cookies or Authorization headers
+        configuration.setAllowCredentials(false); // Since we're allowing all origins, disable credentials
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
